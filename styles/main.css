@@ -71,13 +71,13 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #b5b5b5;
+  background: #fff;
   -webkit-transition: top 0.35s cubic-bezier(0.075, 0.82, 0.165, 1);
   -moz-transition: top 0.35s cubic-bezier(0.075, 0.82, 0.165, 1);
   transition: top 0.35s cubic-bezier(0.075, 0.82, 0.165, 1);
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1); }
   #content #stage {
-    background: #b5b5b5; }
+    background: #000; }
 
 #hint {
   position: absolute;

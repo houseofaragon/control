@@ -34,69 +34,14 @@ window.animations = (function() {
   var PALETTE = [
     {
       // Grey
-      background: { r: 181, g: 181, b: 181 },
-      middleground: { r: 141, g: 164, b: 170 },
-      foreground: { r: 227, g: 79, b: 12 },
-      highlight: { r: 163, g: 141, b: 116 },
-      accent: { r: 255, g: 197, b: 215 },
-      white: { r: 255, g: 255, b: 255 },
-      black: { r: 0, g: 0, b: 0 },
+      background: { r: 181, g: 181, b: 181, a: 0.7 },
+      middleground: { r: 141, g: 164, b: 170, a: 0.7  },
+      foreground: { r: 227, g: 79, b: 12, a: 0.7  },
+      highlight: { r: 163, g: 141, b: 116, a: 0.7  },
+      accent: { r: 255, g: 197, b: 215, a: 0.7  },
+      white: { r: 255, g: 255, b: 255, a: 0.7  },
+      black: { r: 0, g: 0, b: 0, a: 0.7  },
       isDark: false
-    },
-    {
-      // White
-      background: { r: 255, g: 230, b: 255 },
-      middleground: { r: 151, g: 41, b: 164 },
-      foreground: { r: 1, g: 120, b: 186 },
-      highlight: { r: 255, g: 255, b: 0 },
-      accent: { r: 255, g: 51, b: 148 },
-      white: { r: 255, g: 255, b: 255 },
-      black: { r: 255, g: 255, b: 255 },
-      isDark: false
-    },
-    {
-      // Orange
-      background: { r: 217, g: 82, b: 31 },
-      middleground: { r: 143, g: 74, b: 45 },
-      foreground: { r: 255, g: 108, b: 87 },
-      highlight: { r: 255, g: 126, b: 138 },
-      accent: { r: 227, g: 190, b: 141 },
-      white: { r: 255, g: 255, b: 255 },
-      black: { r: 0, g: 0, b: 0 },
-      isDark: false
-    },
-    {
-      // Blue
-      background: { r: 57, g: 109, b: 193 },
-      middleground: { r: 186, g: 60, b: 223 },
-      foreground: { r: 213, g: 255, b: 93 },
-      highlight: { r: 213, g: 160, b: 255 },
-      accent: { r: 36, g: 221, b: 165 },
-      white: { r: 215, g: 236, b: 255 },
-      black: { r: 0, g: 0, b: 0 },
-      isDark: true
-    },
-    {
-      // Cream
-      background: { r: 255, g: 244, b: 211 },
-      middleground: { r: 207, g: 145, b: 79 },
-      foreground: { r: 38, g: 83, b: 122 },
-      highlight: { r: 178, g: 87, b: 53 },
-      accent: { r: 235, g: 192, b: 92 },
-      white: { r: 226, g: 82, b: 87 },
-      black: { r: 0, g: 0, b: 0 },
-      isDark: false
-    },
-    {
-      // Purple
-      background: { r: 39, g: 6, b: 54 },
-      middleground: { r: 69, g: 26, b: 87 },
-      foreground: { r: 252, g: 25, b: 246 },
-      highlight: { r: 52, g: 255, b: 253 },
-      accent: { r: 133, g: 102, b: 193 },
-      white: { r: 253, g: 228, b: 252 },
-      black: { r: 255, g: 255, b: 255 },
-      isDark: true
     }
   ];
 
@@ -113,28 +58,72 @@ window.animations = (function() {
     return PROPERTIES[Math.floor(Math.random() * PROPERTIES.length)];
   };
 
-  domElement.style.background = colors.background;
+  // Two.js colors from main.css
+  var gradientColors = [
+    'rgb(255, 64, 64)',
+    'rgb(255, 128, 0)',
+    'rgb(0, 200, 255)',
+    'rgb(0, 191, 168)',
+    'rgb(153, 102, 255)',
+    'rgb(255, 244, 95)'
+  ];
+  gradientColors.index = 0;
 
+  var linearGradient = two.makeLinearGradient(
+    two.width / 2, - two.height / 2,
+    two.width / 2, two.height / 2,
+    new Two.Stop(0, gradientColors[4],1),
+    new Two.Stop(0.25, gradientColors[3], 0.5),
+    new Two.Stop(0.5, gradientColors[2], 0.5),
+    new Two.Stop(0.75, gradientColors[3], 0.5),
+    new Two.Stop(1, gradientColors[4], 0.5)
+  );
+
+  var radialGradient = two.makeRadialGradient(
+    0, 0,
+    Math.max(two.width, two.height),
+    new Two.Stop(0, gradientColors[3], 1),
+    new Two.Stop(0.25, gradientColors[2], 0),
+
+    new Two.Stop(0.5, gradientColors[4], 0)
+  );
+
+  domElement.style.background = linearGradient;
+
+
+/** [0,1], [1,1], [1,2] **/
   var wipe = (function() {
 
     var callback = _.identity;
     var playing = false;
 
-    var direction = true;
-    var points = [
-      new Two.Anchor(- center.x, -center.y),
-      new Two.Anchor(center.x, - center.y),
-      new Two.Anchor(center.x, center.y),
-      new Two.Anchor(- center.x, center.y)
-    ];
-    var shape = two.makePolygon(points);
-    shape.fill = colors.middleground;
-    shape.noStroke();
+    var amount = 8,
+        w = width * Math.random(),
+        h = height * Math.random();
 
+    var distance = height/2,
+        rotation = Math.PI / 2;
+
+    var destinations = [];
+    var points = _.map(_.range(amount), function(i) {
+      var pct = i / amount;
+      console.log('pct: ', pct)
+      var theta = TWO_PI * pct;
+      var x = distance * Math.sin(theta);
+      var y = distance * Math.cos(theta);
+      destinations.push(new Two.Vector(x, y));
+      return new Two.Anchor(x, y);
+    });
+    console.log(points)
+    var wipe = two.makeCurve(points, false);
+    wipe.fill = linearGradient;
+    //wipe.noStroke();
+
+    points = wipe.vertices;
+    console.log('destinations: ', destinations)
     var start = function(onComplete, silent) {
-      playing = true;
-      shape.visible = true;
-      animate_in.start();
+      wipe.visible = true;
+      _in.start();
       if (!silent && exports.sound) {
         exports.sound.stop().play();
       }
@@ -146,55 +135,76 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      shape.fill = colors.middleground;
-    };
-    var resize = function() {
-      points[0].set(- center.x, - center.y);
-      points[1].set(center.x, - center.y);
-      points[2].set(center.x, center.y);
-      points[3].set(- center.x, center.y);
+      wipe.fill = linearGradient;
     };
 
-    var dest_in = { x: center.x }, dest_out = { x: width * 1.5 };
+    var resize = function() {};
 
-    var animate_in = new TWEEN.Tween(shape.translation)
-      .to(dest_in, duration * 0.5)
-      .easing(Easing.Exponential.Out)
-      .onComplete(function() {
-        animate_out.start();
-      });
+    var options = { ending: 0 };
 
-    var animate_out = new TWEEN.Tween(shape.translation)
-      .to(dest_out, duration * 0.5)
-      .easing(Easing.Exponential.In)
+    var v, i, l, d, x, y, a, theta, ptheta;
+
+    var _in = new TWEEN.Tween(options)
+      .to({ ending: 1 }, duration * 0.75)
+      .easing(Easing.Circular.In)
+      .onStart(function() {
+        playing = true;
+      })
+      .onUpdate(function() {
+        console.log('Options.ending: ', options.ending)
+        var t = options.ending;
+        for (i = 0; i < amount; i++) {
+          v = points[i];
+          d = destinations[i];
+          x = lerp(v.x, d.x, t);
+          y = lerp(v.y, d.y, t);
+          v.set(x, y);
+          console.log('Options.ending: ', options.ending)
+
+        }
+      })
       .onComplete(function() {
         start.onComplete();
         callback();
       });
 
-    reset();
-
     function reset() {
-      shape.visible = false;
-      playing = false;
-      direction = Math.random() > 0.5;
-      if (direction) {
-        shape.translation.set(- center.x, center.y);
-        dest_out.x = width * 1.5;
-      } else {
-        shape.translation.set(width * 1.5, center.y);
-        dest_out.x = - center.x;
+
+      wipe.visible = false;
+      impact = new Two.Vector(Math.random() * width, Math.random() * height);
+      var x, y, pos = Math.random() * 8;
+
+
+
+      wipe.translation.set(x, y);
+      options.ending = 0;
+      distance = height;
+
+      for (i = 0; i < amount; i++) {
+        v = points[i];
+        pct = i / amount;
+        ptheta = pct * TWO_PI;
+        v.set(distance * Math.cos(ptheta), distance * Math.sin(ptheta));
+        theta = angleBetween(v, impact) - ptheta;
+        d = v.distanceTo(impact);
+        a = 10 * distance / Math.sqrt(d);
+        x = a * Math.cos(theta) + v.x;
+        y = a * Math.sin(theta) + v.y;
+        destinations[i].set(x, y);
       }
-      dest_in.x = center.x;
-      animate_in.stop();
-      animate_out.stop();
+
+      playing = false;
+      _in.stop();
+
     }
+
+    reset();
 
     var exports = {
       start: start,
       update: update,
-      resize: resize,
       clear: reset,
+      resize: resize,
       playing: function() { return playing; },
       hash: '2,1',
       filename: 'wipe'
@@ -211,21 +221,28 @@ window.animations = (function() {
     var callback = _.identity;
     var playing = false;
 
-    var direction = true;
-    var points = [
-      new Two.Anchor(- center.x, - center.y),
-      new Two.Anchor(center.x, - center.y),
-      new Two.Anchor(center.x, center.y),
-      new Two.Anchor(- center.x, center.y)
-    ];
-    var shape = two.makePolygon(points);
-    shape.fill = colors.highlight;
-    shape.noStroke();
+    var amount = Math.floor(Math.random()) * 8 + 8, w = width * Math.random(), h = height * Math.random();
+    var distance = height, rotation = Math.PI / 2;
+
+    var destinations = [];
+    var points = _.map(_.range(amount), function(i) {
+      var pct = i / amount;
+      var theta = TWO_PI * pct;
+      var x = distance * Math.sin(theta);
+      var y = distance * Math.cos(theta);
+      destinations.push(new Two.Vector(x, y));
+      return new Two.Anchor(x, y);
+    });
+
+    var veil = two.makeCurve(points);
+    veil.fill = colors.white;
+    veil.noStroke();
+
+    points = veil.vertices;
 
     var start = function(onComplete, silent) {
-      playing = true;
-      shape.visible = true;
-      animate_in.start();
+      veil.visible = true;
+      _in.start();
       if (!silent && exports.sound) {
         exports.sound.stop().play();
       }
@@ -237,58 +254,250 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      shape.fill = colors.highlight;
+      veil.fill = colors.white;
     };
-    var resize = function() {
-      points[0].set(- center.x, - center.y);
-      points[1].set(center.x, - center.y);
-      points[2].set(center.x, center.y);
-      points[3].set(- center.x, center.y);
-    };
+    var resize = function() {};
 
-    var dest_in = { y: center.y }, dest_out = { y: 0 };
+    var options = { ending: 0 };
 
-    var animate_in = new TWEEN.Tween(shape.translation)
-      .to(dest_in, duration * 0.5)
-      .easing(Easing.Exponential.Out)
-      .onComplete(function() {
-        animate_out.start();
-      });
-
-    var animate_out = new TWEEN.Tween(shape.translation)
-      .to(dest_out, duration * 0.5)
-      .easing(Easing.Exponential.In)
+    var v, i, l, d, x, y, a, theta, ptheta;
+    var _in = new TWEEN.Tween(options)
+      .to({ ending: 1 }, duration * 0.75)
+      .easing(Easing.Circular.In)
+      .onStart(function() {
+        playing = true;
+      })
+      .onUpdate(function() {
+        var t = options.ending;
+        for (i = 0; i < amount; i++) {
+          v = points[i];
+          d = destinations[i];
+          x = lerp(v.x, d.x, t);
+          y = lerp(v.y, d.y, t);
+          v.set(x, y);
+        }
+      })
       .onComplete(function() {
         start.onComplete();
         callback();
       });
 
-    reset();
-
     function reset() {
-      shape.visible = false;
-      playing = false;
-      direction = Math.random() > 0.5;
-      if (direction) {
-        shape.translation.set(center.x, - center.y);
-        dest_out.y = height * 1.5;
+
+      veil.visible = false;
+      impact = new Two.Vector(Math.random() * width, Math.random() * height);
+      var x, y, pos = Math.random() * 8;
+
+      if (pos > 7) {
+        // north
+        x = center.x;
+        y = 0;
+      } else if (pos > 6) {
+        // north-west
+        x = 0;
+        y = 0;
+      } else if (pos > 5) {
+        // west
+        x = 0;
+        y = center.y;
+      } else if (pos > 4) {
+        // south-west
+        x = 0;
+        y = height;
+      } else if (pos > 3) {
+        // south
+        x = center.x;
+        y = height;
+      }  else if (pos > 2) {
+        // south-east
+        x = width;
+        y = height;
+      } else if (pos > 1) {
+        // east
+        x = width;
+        y = center.y;
       } else {
-        shape.translation.set(center.x, height * 1.5);
-        dest_out.y = - center.y;
+        x = width;
+        y = 0;
       }
-      dest_in.y = center.y;
-      animate_in.stop();
-      animate_out.stop();
+
+      veil.translation.set(x, y);
+      options.ending = 0;
+      distance = height;
+
+      for (i = 0; i < amount; i++) {
+        v = points[i];
+        pct = i / amount;
+        ptheta = pct * TWO_PI;
+        v.set(distance * Math.cos(ptheta), distance * Math.sin(ptheta));
+        theta = angleBetween(v, impact) - ptheta;
+        d = v.distanceTo(impact);
+        a = 10 * distance / Math.sqrt(d);
+        x = a * Math.cos(theta) + v.x;
+        y = a * Math.sin(theta) + v.y;
+        destinations[i].set(x, y);
+      }
+
+      playing = false;
+      _in.stop();
+
     }
+
+    reset();
 
     var exports = {
       start: start,
       update: update,
-      resize: resize,
       clear: reset,
+      resize: resize,
       playing: function() { return playing; },
       hash: '1,1',
       filename: 'veil'
+    };
+
+    monome[exports.hash] = exports;
+
+    return exports;
+
+  })();
+
+  var clay = (function() {
+
+    var callback = _.identity;
+    var playing = false;
+
+    var amount = Math.floor(Math.random()) * 8 + 8, w = width * Math.random(), h = height * Math.random();
+    var distance = height, rotation = Math.PI / 2;
+
+    var destinations = [];
+    var points = _.map(_.range(amount), function(i) {
+      var pct = i / amount;
+      var theta = TWO_PI * pct;
+      var x = distance * Math.sin(theta);
+      var y = distance * Math.cos(theta);
+      destinations.push(new Two.Vector(x, y));
+      return new Two.Anchor(x, y);
+    });
+
+    var clay = two.makeCurve(points);
+    clay.fill = 'rgba(255,255,255,0.5)';
+    clay.noStroke();
+
+    points = clay.vertices;
+
+    var start = function(onComplete, silent) {
+      clay.visible = true;
+      _in.start();
+      if (!silent && exports.sound) {
+        exports.sound.stop().play();
+      }
+      if (_.isFunction(onComplete)) {
+        callback = onComplete;
+      }
+    };
+
+    start.onComplete = reset;
+
+    var update = function() {
+      clay.fill = 'rgba(255,255,255,0.5)';
+    };
+    var resize = function() {};
+
+    var options = { ending: 0 };
+
+    var v, i, l, d, x, y, a, theta, ptheta;
+    var _in = new TWEEN.Tween(options)
+      .to({ ending: 1 }, duration * 0.75)
+      .easing(Easing.Circular.In)
+      .onStart(function() {
+        playing = true;
+      })
+      .onUpdate(function() {
+        var t = options.ending;
+        for (i = 0; i < amount; i++) {
+          v = points[i];
+          d = destinations[i];
+          x = lerp(v.x, d.x, t);
+          y = lerp(v.y, d.y, t);
+          v.set(x, y);
+        }
+      })
+      .onComplete(function() {
+        start.onComplete();
+        callback();
+      });
+
+    function reset() {
+
+      clay.visible = false;
+      impact = new Two.Vector(Math.random() * width, Math.random() * height);
+      var x, y, pos = Math.random() * 8;
+
+      if (pos > 7) {
+        // north
+        x = center.x;
+        y = 0;
+      } else if (pos > 6) {
+        // north-west
+        x = 0;
+        y = 0;
+      } else if (pos > 5) {
+        // west
+        x = 0;
+        y = center.y;
+      } else if (pos > 4) {
+        // south-west
+        x = 0;
+        y = height;
+      } else if (pos > 3) {
+        // south
+        x = center.x;
+        y = height;
+      }  else if (pos > 2) {
+        // south-east
+        x = width;
+        y = height;
+      } else if (pos > 1) {
+        // east
+        x = width;
+        y = center.y;
+      } else {
+        x = width;
+        y = 0;
+      }
+
+      clay.translation.set(x, y);
+      options.ending = 0;
+      distance = height;
+
+      for (i = 0; i < amount; i++) {
+        v = points[i];
+        pct = i / amount;
+        ptheta = pct * TWO_PI;
+        v.set(distance * Math.cos(ptheta), distance * Math.sin(ptheta));
+        theta = angleBetween(v, impact) - ptheta;
+        d = v.distanceTo(impact);
+        a = 10 * distance / Math.sqrt(d);
+        x = a * Math.cos(theta) + v.x;
+        y = a * Math.sin(theta) + v.y;
+        destinations[i].set(x, y);
+      }
+
+      playing = false;
+      _in.stop();
+
+    }
+
+    reset();
+
+    var exports = {
+      start: start,
+      update: update,
+      clear: reset,
+      resize: resize,
+      playing: function() { return playing; },
+      hash: '0,1',
+      filename: 'clay'
     };
 
     monome[exports.hash] = exports;
@@ -306,21 +515,21 @@ window.animations = (function() {
       var playing = false;
 
       var circles = [];
-      var points = _.map(_.range(amount), function(i) {
+      var points = _.map(_.range(amount*6), function(i) {
         var pct = i / amount;
         var theta = TWO_PI * pct;
         var x = r1 * Math.cos(theta);
         var y = r1 * Math.sin(theta);
         var circle = two.makeCircle(x, y, r2);
-        circle.fill = colors.black;
+        circle.fill = radialGradient;
         circle.noStroke();
         circles.push(circle);
         return new Two.Anchor(x, y);
       });
 
       var prism = two.makePolygon(points);
-      prism.stroke = colors.black;
-      prism.noFill();
+      prism.stroke = colors.white;
+      prism.fill = linearGradient;
       prism.linewidth = 0.5;
 
       var group = two.makeGroup(prism).add(circles);
@@ -343,10 +552,10 @@ window.animations = (function() {
 
       var c, l;
       var update = function() {
-        prism.stroke = colors.black;
+        prism.stroke = linearGradient;
         for (i = 0, l = circles.length; i < l; i++) {
           c = circles[i];
-          c.fill = colors.black;
+          c.fill = linearGradient;
         }
       };
       var resize = function() {
@@ -418,7 +627,7 @@ window.animations = (function() {
     });
 
     var clay = two.makeCurve(points);
-    clay.fill = colors.middleground;
+    clay.fill = colors.foreground;
     clay.noStroke();
 
     points = clay.vertices;
@@ -542,7 +751,7 @@ window.animations = (function() {
 
     return exports;
 
-  })();
+  })(linearGradient);
 
   _.each(_.range(pistonAmount), function(i) {
 
@@ -551,7 +760,7 @@ window.animations = (function() {
       var playing = false;
       var callback = _.identity;
 
-      var amount = i * 4 + 1, w = width * 0.75, h = center.y;
+      var amount = i * 1 + 2, w = width, h = height;
       var begin, end;
 
       var group = two.makeGroup();
@@ -563,9 +772,9 @@ window.animations = (function() {
         var x = 0;
         var y = - h / 2 + (i + 1) * (h / (amount + 1));
 
-        var shape = two.makeRectangle(x, y, w, d);
+        var shape = two.makeCircle(x, y, w);
 
-        shape.fill = colors.white;
+        shape.fill = radialGradient;
         shape.noStroke();
 
         group.add(shape);
@@ -596,7 +805,7 @@ window.animations = (function() {
       var s, points;
       var update = function() {
         for (i = 0; i < amount; i++) {
-          shapes[i].fill = colors.white;
+          shapes[i].fill = radialGradient;
         }
       }; // Mainly for color in the future
       var resize = function() {
@@ -604,8 +813,8 @@ window.animations = (function() {
         group.translation.copy(center);
       };
 
-      var _in = new TWEEN.Tween(options)
-        .to({ ending: 1.0 }, duration * 0.125)
+      var _in = new TWEEN.Tween(group)
+        .to({rotation: Math.PI}, duration/2)
         .easing(Easing.Sinusoidal.Out)
         .onStart(function() {
           playing = true;
@@ -613,16 +822,18 @@ window.animations = (function() {
         .onUpdate(function() {
           for (i = 0; i < amount; i++) {
             s = shapes[i];
-            points = s.vertices;
-            points[3].x = points[0].x = end * options.ending;
+            //s.rotation += 4 * Math.PI
+            //points = s.vertices;
+            //points.rotation += 4 * Math.PI
+            //points[3].x = points[0].x = end * options.ending;
           }
         })
         .onComplete(function() {
           _out.start();
         });
 
-      var _out = new TWEEN.Tween(options)
-        .to({ beginning: 1.0 }, duration * 0.125)
+      var _out = new TWEEN.Tween(group)
+        .to({rotation: Math.PI / 2, scale: 0}, duration/2)
         .easing(Easing.Sinusoidal.Out)
         .onUpdate(function() {
           for (i = 0; i < amount; i++) {
@@ -642,20 +853,15 @@ window.animations = (function() {
         var rotated = Math.random() > 0.5 ? true : false;
 
         if (rotated) {
-          begin = - w / 2;
-          end = w / 2;
+          begin = - w ;
+          end = w/2 ;
         } else {
-          begin = w / 2;
-          end = - w / 2;
+          begin = w ;
+          end = - w/2 ;
         }
 
-        for (i = 0; i < amount; i++) {
-          s = shapes[i];
-          shapes.visible = false;
-          points = s.vertices;
-          points[0].x = points[1].x = points[2].x = points[3].x = begin;
-        }
-
+        group.visible = false;
+        group.scale = 1
         playing = false;
 
         _in.stop();
@@ -692,7 +898,7 @@ window.animations = (function() {
 
       var shape = two.makeRectangle(center.x, center.y, width, height);
       var timeout;
-      shape.noStroke().fill = colors[PROPERTIES[PROPERTIES.length - 1 - (i % PROPERTIES.length)]];
+      shape.noStroke().fill = linearGradient;
       shape.visible = false;
 
       var start = function(onComplete, silent) {
@@ -708,14 +914,14 @@ window.animations = (function() {
           playing = false;
           callback();
           shape.visible = false;
-        }, duration * 0.25);
+        }, duration );
         if (_.isFunction(onComplete)) {
           callback = onComplete;
         }
       };
 
       var update = function() {
-        shape.fill = colors[PROPERTIES[PROPERTIES.length - 1 - (i % PROPERTIES.length)]];
+        shape.fill = linearGradient;
       };
 
       var resize = function() {
@@ -776,7 +982,7 @@ window.animations = (function() {
       var y2 = r * Math.sin(theta);
 
       var line = two.makeLine(x1, y1, x2, y2);
-      line.stroke = colors.black;
+      line.stroke = colors.white;
       line.linewidth = (1 - Math.sqrt(1 - pct)) * linewidth;
       line.cap = line.join = 'round';
 
@@ -807,7 +1013,7 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      group.stroke = colors.black;
+      group.stroke = colors.white;
     };
     var resize = function() {
       group.translation.set(center.x, center.y);
@@ -1141,7 +1347,7 @@ window.animations = (function() {
     points.push(points[0].clone(), points[1].clone());
 
     var timer = two.makeCurve(points, true);
-    timer.stroke = colors.highlight;
+    timer.stroke = linearGradient;
     timer.cap = 'butt';
     timer.linewidth = min_dimension / 10;
     timer.noFill();
@@ -1170,7 +1376,7 @@ window.animations = (function() {
     };
 
     var update = function() {
-      timer.stroke = colors.highlight;
+      timer.stroke = linearGradient;
     };
     var resize = function() {
       timer.translation.set(center.x, center.y);
@@ -1250,9 +1456,9 @@ window.animations = (function() {
     var playing = false;
     var callback = _.identity;
 
-    var radius = min_dimension * 0.25;
-    var circle = two.makeCircle(0, 0, radius);
-    circle.noStroke().fill = colors.accent;
+    var radius = min_dimension;
+    var circle = two.makeCircle(0, 0, radius/4);
+    circle.noStroke().fill = radialGradient;
 
     var start = function(onComplete, silent) {
       playing = true;
@@ -1269,10 +1475,96 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      circle.fill = colors.accent;
+      circle.fill = radialGradient;
     };
     var resize = function() {
-      radius = min_dimension * 0.25;
+      radius = min_dimension;
+    };
+
+    circle.destination = { y: center.y };
+
+    var _in = new TWEEN.Tween(circle.translation)
+      .to(circle.destination, duration / 2)
+      .easing(Easing.Circular.Out)
+      .onComplete(function() {
+        _out.start();
+      });
+
+    var _out = new TWEEN.Tween(circle)
+      .to({ scale: 0 }, duration / 2)
+      .easing(Easing.Circular.Out)
+      .onComplete(function() {
+        playing = false;
+        start.onComplete();
+        callback();
+      });
+
+    function reset() {
+      circle.visible = false;
+      var right = Math.random() > 0.5;
+      var top = Math.random() > 0.5;
+      var x, y;
+      if (right) {
+        circle.translation.x = width/2;
+      } else {
+        circle.translation.x = width/2;
+      }
+      if (top) {
+        circle.origin = circle.translation.y =  center.y;
+      } else {
+        circle.origin = circle.translation.y = center.y;
+      }
+      circle.destination.y = center.y;
+      circle.scale = 1;
+      _in.stop();
+      _out.stop();
+    }
+
+    reset();
+
+    var exports = {
+      resize: resize,
+      update: update,
+      clear: reset,
+      start: start,
+      playing: function() { return playing; },
+      hash: '1,2',
+      filename: 'ufo'
+    };
+
+    monome[exports.hash] = exports;
+
+    return exports;
+
+  })();
+  var splits = (function() {
+
+    var playing = false;
+    var callback = _.identity;
+
+    var radius = min_dimension;
+    var circle = two.makeCircle(0, 0, radius/4);
+    circle.noStroke().fill = radialGradient;
+
+    var start = function(onComplete, silent) {
+      playing = true;
+      _in.start();
+      circle.visible = true;
+      if (!silent && exports.sound) {
+        exports.sound.stop().play();
+      }
+      if (_.isFunction(onComplete)) {
+        callback = onComplete;
+      }
+    };
+
+    start.onComplete = reset;
+
+    var update = function() {
+      circle.fill = radialGradient;
+    };
+    var resize = function() {
+      radius = min_dimension/4;
     };
 
     circle.destination = { y: center.y };
@@ -1322,124 +1614,6 @@ window.animations = (function() {
       clear: reset,
       start: start,
       playing: function() { return playing; },
-      hash: '1,2',
-      filename: 'ufo'
-    };
-
-    monome[exports.hash] = exports;
-
-    return exports;
-
-  })();
-
-  var splits = (function() {
-
-    var playing = false;
-    var callback = _.identity;
-
-    var amount = 25, last = amount - 1;
-    var radius = min_dimension * 0.33;
-    var distance = height / 6;
-
-    var points = _.map(_.range(amount), function(i) {
-      var pct = i / last;
-      var theta = pct * Math.PI;
-      var x = radius * Math.cos(theta);
-      var y = radius * Math.sin(theta);
-      return new Two.Anchor(x, y);
-    });
-
-    var a = two.makePolygon(points);
-    a.origin = new Two.Vector().copy(a.translation);
-
-    points = _.map(_.range(amount), function(i) {
-      var pct = i / last;
-      var theta = pct * Math.PI + Math.PI;
-      var x = radius * Math.cos(theta);
-      var y = radius * Math.sin(theta);
-      return new Two.Anchor(x, y);
-    });
-
-    var b = two.makePolygon(points);
-    b.origin = new Two.Vector().copy(b.translation);
-
-    var shape = two.makeGroup(a, b);
-    shape.fill = shape.stroke = colors.foreground;
-    shape.translation.set(center.x, center.y);
-
-    var options = { ending: 0, beginning: 0 };
-
-    var start = function(onComplete, silent) {
-      playing = true;
-      _in.start();
-      if (!silent && exports.sound) {
-        exports.sound.stop().play();
-      }
-      if (_.isFunction(onComplete)) {
-        callback = onComplete;
-      }
-    };
-
-    start.onComplete = reset;
-
-    var update = function() {
-      shape.fill = shape.stroke = colors.foreground;
-    };
-
-    var resize = function() {
-      radius = min_dimension * 0.33;
-      distance = height / 6;
-      shape.translation.set(center.x, center.y);
-    };
-
-    var _in = new TWEEN.Tween(options)
-      .to({ ending: 1.0 }, duration * 0.5)
-      .easing(Easing.Circular.In)
-      .onUpdate(function(t) {
-        shape.visible = Math.random() < t;
-      })
-      .onComplete(function() {
-        shape.visible = true;
-        _out.start();
-      });
-
-    var _out = new TWEEN.Tween(options)
-      .to({ beginning: 1.0 }, duration * 0.5)
-      .easing(Easing.Circular.Out)
-      .delay(duration * 0.5)
-      .onUpdate(function(t) {
-        a.translation.y = ease(a.translation.y, a.origin.y + distance, 0.3);
-        b.translation.y = ease(b.translation.y, b.origin.y - distance, 0.3);
-        shape.opacity = 1 - t;
-      })
-      .onComplete(function() {
-        start.onComplete();
-        callback();
-      });
-
-    function reset() {
-
-      playing = false;
-      options.ending = options.beginning = 0;
-      shape.visible = false;
-      shape.rotation = Math.random() * TWO_PI;
-      a.translation.copy(a.origin);
-      b.translation.copy(b.origin);
-      shape.opacity = 1;
-
-      _in.stop();
-      _out.stop();
-
-    }
-
-    reset();
-
-    var exports = {
-      start: start,
-      update: update,
-      clear: reset,
-      resize: resize,
-      playing: function() { return playing; },
       hash: '2,2',
       filename: 'splits'
     };
@@ -1449,35 +1623,20 @@ window.animations = (function() {
     return exports;
 
   })();
-
   var moon = (function() {
 
     var playing = false;
     var callback = _.identity;
-    var amount = 42, half = amount / 2;
-    var radius = min_dimension * 0.33;
 
-    var destinations = [];
-    var points = [];
-    _.each(_.range(amount), function(i) {
-      var pct = i / (amount - 1);
-      var theta = pct * TWO_PI;
-      var x = radius * Math.cos(theta);
-      var y = radius * Math.sin(theta);
-      destinations.push({ x: x, y: y });
-      points.push(new Two.Anchor(x, y));
-    });
+    var radius = min_dimension/4;
+    var circle = two.makeCircle(0, 0, radius);
 
-    var moon = two.makePolygon(points);
-    moon.translation.set(center.x, center.y);
-    moon.fill = colors.foreground;
-    moon.noStroke();
-
-    var options = { ending: 0, beginning: 0 };
+    circle.noStroke().fill = radialGradient;
 
     var start = function(onComplete, silent) {
-      moon.visible = true;
+      playing = true;
       _in.start();
+      circle.visible = true;
       if (!silent && exports.sound) {
         exports.sound.stop().play();
       }
@@ -1489,57 +1648,47 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      moon.fill = colors.foreground;
+      circle.fill = radialGradient;
     };
     var resize = function() {
-      radius = min_dimension * 0.33;
-      moon.translation.set(center.x, center.y);
+      radius = min_dimension/4;
     };
 
-    var i, t, v, d, x, y, pct, theta;
-    var _in = new TWEEN.Tween(options)
-      .to({ ending: 1.0 }, duration / 2)
-      .easing(Easing.Sinusoidal.Out)
-      .onUpdate(function(t) {
-        for (i = half; i < amount; i++) {
-          points[i].y = lerp(points[i].y, destinations[i].y, t);
-        }
-      })
-      .onStart(function() {
-        playing = true;
-      })
+    circle.destination = { y: center.y };
+
+    var _in = new TWEEN.Tween(circle.translation)
+      .to(circle.destination, duration / 2)
+      .easing(Easing.Circular.Out)
       .onComplete(function() {
         _out.start();
       });
 
-    var _out = new TWEEN.Tween(options)
-      .to({ beginning: 1.0 }, duration / 2)
-      .easing(Easing.Sinusoidal.Out)
-      .onUpdate(function(t) {
-        for (i = 0; i < half; i++) {
-          points[i].y = lerp(points[i].y, negate(destinations[i].y), t);
-        }
-      })
+    var _out = new TWEEN.Tween(circle)
+      .to({ scale: 0 }, duration / 2)
+      .easing(Easing.Circular.Out)
       .onComplete(function() {
+        playing = false;
         start.onComplete();
         callback();
       });
 
     function reset() {
-      moon.visible = false;
-      moon.rotation = Math.random() * TWO_PI;
-      options.beginning = options.ending = 0;
-      for (i = 0; i < amount; i++) {
-        v = points[i];
-        pct = i / (amount - 1);
-        theta = pct * TWO_PI;
-        x = radius * Math.cos(theta);
-        y = radius * Math.sin(theta);
-        destinations[i].x = x;
-        destinations[i].y = y;
-        v.set(x, Math.abs(y));
+      circle.visible = false;
+      var right = Math.random() > 0.5;
+      var top = Math.random() > 0.5;
+      var x, y;
+      if (right) {
+        circle.translation.x = width * 0.75;
+      } else {
+        circle.translation.x = width * 0.25;
       }
-      playing = false;
+      if (top) {
+        circle.origin = circle.translation.y =  - center.y;
+      } else {
+        circle.origin = circle.translation.y = height * 1.5;
+      }
+      circle.destination.y = center.y;
+      circle.scale = 1;
       _in.stop();
       _out.stop();
     }
@@ -1547,10 +1696,10 @@ window.animations = (function() {
     reset();
 
     var exports = {
-      start: start,
+      resize: resize,
       update: update,
       clear: reset,
-      resize: resize,
+      start: start,
       playing: function() { return playing; },
       hash: '0,2',
       filename: 'moon'
@@ -1561,6 +1710,8 @@ window.animations = (function() {
     return exports;
 
   })();
+
+
 
   var strike = (function() {
 
@@ -1574,7 +1725,7 @@ window.animations = (function() {
       return new Two.Anchor();
     });
     var line = two.makePolygon(points, true);
-    line.noFill().stroke = colors.black;
+    line.noFill().stroke = colors.white;
     line.translation.set(center.x, center.y);
     line.cap = 'round';
 
@@ -1597,7 +1748,7 @@ window.animations = (function() {
       line.translation.set(center.x, center.y);
     };
     var update = function() {
-      line.stroke = colors.black;
+      line.stroke = colors.white;
     };
 
     var animate_in = new TWEEN.Tween(line)
@@ -1693,7 +1844,7 @@ window.animations = (function() {
     });
 
     var zigzag = two.makePolygon(points, true);
-    zigzag.stroke = colors.black;
+    zigzag.stroke = colors.white;
     zigzag.linewidth = min_dimension / 30;
     zigzag.noFill();
     zigzag.join = 'miter';
@@ -1714,7 +1865,7 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      zigzag.stroke = colors.black;
+      zigzag.stroke = colors.white;
     };
     var resize = function() {
       w = width / 16;
@@ -1755,7 +1906,7 @@ window.animations = (function() {
       } else if (index > 2) {
         phi = 4;
       } else if (index > 1) {
-        phi = 2
+        phi = 2;
       } else {
         phi = 1;
       }
@@ -1926,7 +2077,7 @@ window.animations = (function() {
     });
 
     var shape = two.makeGroup(circles);
-    shape.noStroke().fill = colors.black;
+    shape.noStroke().fill = colors.white;
     shape.translation.set(center.x, center.y);
 
     var start = function(onComplete, silent) {
@@ -1943,7 +2094,7 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      shape.fill = colors.black;
+      shape.fill = colors.white;
     };
     var resize = function() {
       shape.translation.set(center.x, center.y);
@@ -2077,7 +2228,7 @@ window.animations = (function() {
     });
 
     var shape = two.makeGroup(circles);
-    shape.noStroke().fill = colors.white;
+    shape.noStroke().fill = colors.highlight;
     shape.translation.set(center.x, center.y);
 
     var start = function(onComplete, silent) {
@@ -2094,7 +2245,7 @@ window.animations = (function() {
     start.onComplete = reset;
 
     var update = function() {
-      shape.fill = colors.white;
+      shape.fill = colors.highlight;
     };
     var resize = function() {
       shape.translation.set(center.x, center.y);
@@ -2754,3 +2905,6 @@ function sigmoid(a, b, t, k) {
   var k = k || 0.2;
   return lerp(a, b, (k * t) / ((1 + k) * t));
 }
+
+
+

@@ -52,36 +52,11 @@
 
   </head>
   <body>
-    <h1 style="width: 0; height: 0; overflow: hidden;">
-      Patatap is a portable animation and sound kit. With the touch of a finger create melodies charged with moving shapes. Warning: contains flashing images.
-    </h1>
-    <div id="credits" style="display: none;">
-      <ul>
-        <li>
-          <a href="http://patatap.com" target="_blank" style="border-bottom: 0;"><strong>Patatap</strong></a>
-        </li>
-        <li>
-          <a href="http://typatone.com" target="_blank">Typatone</a>
-        </li>
-        <li>
-          <a href="mailto:inquiries@patatap.com">Inquiries</a>
-        </li>
-        <li>
-          <a id="embed-button" href="#" title="Embed Patatap on your site">Embed</a>
-        </li>
-        <li>
-          <a id="merchandise-button" href="#" title="Support the creators of Patatap">Merchandise</a>
-        </li>
-        <li>
-          <a id="jonobr1" href="http://jonobr1.com/" target="_blank">jonobr1</a> + <a id="lullatone" href="http://lullatone.com/" target="_blank">lullatone</a>
-        </li>
-      </ul>
-    </div>
+
+
     <div id="content"></div>
     <div id="hint" style="display: none;">
       <p class="message"></p>
-      <a class="ios-app-store" href="https://itunes.apple.com/us/app/patatap/id880626868?ls=1&mt=8" target="_blank"></a>
-      <a class="play-store" href="https://play.google.com/store/apps/details?id=com.jonobr1.Patatap" target="_blank"></a>
     </div>
     <div id="embed" style="display: none;">
       <textarea><iframe src="http://www.patatap.com/" style="border: 3px solid #ccc" width="640" height="480"></iframe></textarea>
@@ -194,11 +169,16 @@
         }
 
       </script>
+
       <script src="/third-party/tween.js"></script>
       <script src="/third-party/two.js"></script>
+      <script src="/third-party/linear-gradient.js"></script>
+      <script src="/third-party/gradient.js"></script>
       <script src="/src/sound.js"></script>
       <script src="/src/animations.js"></script>
       <script src="/src/main.js"></script>
+      <script src="/src/sequencer.js"></script>
+
       <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
         (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -207,7 +187,6 @@
 
         ga('create', 'UA-48525045-1', 'patatap.com');
         ga('send', 'pageview');
-
       </script>
     </div>
   </body>

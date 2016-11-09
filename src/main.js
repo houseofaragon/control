@@ -10,26 +10,18 @@ $(function() {
    * Append Sound Generation to Animations
    */
 
-  var letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-  var path = window.location.href.match(/localhost/i) ? '/assets/' : '//d3o508uuo64enc.cloudfront.net/';
+  var letters = ['A'];
+  var path ='/assets/' ;
   // var path = '/assets/';
   var filetype = '.mp3';
   var asset_count = 0, $loaded = $('#loaded');
 
   if (url.boolean('kiosk')) {
-    path += 'kiosk/';
+    path += 'A/';
   }
 
   var soundsBuffered = _.after(1, function() {
-    if (url.loop && url.loop.match(/(clap|groove)/ig)) {
-      new Sound(path + url.loop.replace(/\//ig, '') + '-loop' + filetype, function() {
-        this.play({
-          loop: true
-        });
-      });
-      initialize();
-      return;
-    }
+
     initialize();
   });
 
@@ -42,7 +34,7 @@ $(function() {
     var silent = new Sound(path + 'silent.mp3', function() {
       var enableAudio = function () {
         Sound.enabled = true;
-        silent.play();
+        //silent.play();
         $window.unbind('click', enableAudio);
       };
       $window.bind('click', enableAudio);
@@ -53,7 +45,7 @@ $(function() {
   function initialize() {
 
     animations.initializeSound();
-
+    console.log(animations);
     var hideEmbed = function(e) {
       if (!!$embed.has(e.target).length) {
         return;
@@ -118,19 +110,7 @@ $(function() {
           return false;
         }
       })
-      .bind('mousemove', function(e) {
 
-        if (has.mobile || embedding) {
-          return;
-        }
-
-        mouse.set(e.clientX, e.clientY);
-
-        // if (mouse.y > height - 64) {
-        showCredits();
-        // }
-
-      })
       .bind('keydown', function(e, data) {
 
         if (e.metaKey || e.ctrlKey) {
@@ -241,6 +221,22 @@ $(function() {
         triggered();
 
       });
+
+    function trigger(hash) {
+
+      var animation = animations.map[hash];
+      console.log(animation);
+      if (animation) {
+        if (animation.playing()) {
+          animation.clear();
+        }
+        animation.start(undefined);
+        if (window.ga) {
+          window.ga('send', 'event', 'animation', 'trigger', hash);
+        }
+      }
+
+    }
 
     if (has.mobile) {
       $hint.find('.message').html('Press anywhere on the screen and turn up speakers');
@@ -498,22 +494,6 @@ $(function() {
 
   }
 
-  function trigger(hash, silent) {
-
-    var animation = animations.map[hash];
-
-    if (animation) {
-      if (animation.playing()) {
-        animation.clear();
-      }
-      animation.start(undefined, silent);
-      if (window.ga) {
-        window.ga('send', 'event', 'animation', 'trigger', hash);
-      }
-    }
-
-  }
-
   var timeout;
   var startDemonstration = _.debounce(function() {
     interacting = false;
@@ -566,21 +546,6 @@ $(function() {
     showHint();
   }
 
-  var hideCredits = _.debounce(function() {
-    if (mouse.y > height - 64) {
-      hideCredits();
-      return;
-    }
-    container.css('top', 0);
-  }, 1000);
-
-  function showCredits() {
-    container.css('top', - 64 + 'px');
-    hideCredits();
-  }
 
 });
 
-if (window.console && window.console.log) {
-  console.log('Check out the code at http://github.com/jonobr1/Neuronal-Synchrony');
-}
